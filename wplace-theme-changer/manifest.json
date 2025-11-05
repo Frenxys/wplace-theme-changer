@@ -29,4 +29,13 @@
     "48": "icon.png",
     "128": "icon.png"
   }
+  ,
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "wplace-theme-changer@github.com.Frenxys",
+      "data_collection_permissions": {
+        "required": ["none"]
+      }
+    }
+  }
 }
