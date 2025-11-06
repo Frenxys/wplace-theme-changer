@@ -61,19 +61,7 @@
         <h3 style="margin: 0; font-size: 1.1em; font-weight: bold; flex: 1; text-align: center; padding-right: 32px;">Theme</h3>
         <button class="btn btn-circle btn-ghost" title="Close" style="width: 28px; height: 28px;">✕</button>
       </div>
-      <select id="theme-select" style="width:100%; padding:8px; border-radius:6px; background:#444; color:#fff; font-size:1em;">
-        <option value="acquerello">Acquerello</option>
-        <option value="aurora-boreale">Aurora Boreale</option>
-        <option value="cute">Cute</option>
-        <option value="dark">Dark</option>
-        <option value="halloween">Halloween</option>
-        <option value="liberty">Liberty</option>
-        <option value="pixel-art-retro">Pixel Art Retro</option>
-        <option value="positron">Positron</option>
-        <option value="purple">Purple</option>
-        <option value="rainbow">Rainbow</option>
-        <option value="space">Space</option>
-      </select>
+      <select id="theme-select" style="width:100%; padding:8px; border-radius:6px; background:#444; color:#fff; font-size:1em;"></select>
     `;
     popup.style.display = 'none';
     document.body.appendChild(popup);
@@ -110,8 +98,26 @@
 
     
 
-    // Dropdown theme selector
+    // Carica i temi da Firebase e popola il dropdown
     const themeSelect = popup.querySelector('#theme-select');
+    fetch('https://wplacepixels-default-rtdb.europe-west1.firebasedatabase.app/themes.json')
+      .then(res => res.json())
+      .then(themes => {
+        themeSelect.innerHTML = '';
+        Object.keys(themes).forEach(themeName => {
+          const option = document.createElement('option');
+          option.value = themeName;
+          option.textContent = themeName.charAt(0).toUpperCase() + themeName.slice(1);
+          themeSelect.appendChild(option);
+        });
+        // Imposta il tema selezionato all'apertura
+        chrome.runtime.sendMessage({action: 'getTheme'}, function(response) {
+          if (response && response.theme) {
+            themeSelect.value = response.theme;
+          }
+        });
+      });
+
     themeSelect.addEventListener('change', function(e) {
       const theme = themeSelect.value;
       chrome.runtime.sendMessage({action: 'setTheme', theme}, function(response) {
