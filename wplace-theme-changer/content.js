@@ -99,7 +99,51 @@
     
 
     // Carica i temi da Firebase e popola il dropdown
+    // Carica prima i temi standard
+    fetch('https://wplacepixels-default-rtdb.europe-west1.firebasedatabase.app/themes.json')
+      .then(res => res.json())
+      .then(themes => {
+        themeSelect.innerHTML = '';
+        Object.keys(themes).forEach(themeName => {
+          const option = document.createElement('option');
+          option.value = themeName;
+          option.textContent = themeName.charAt(0).toUpperCase() + themeName.slice(1);
+          themeSelect.appendChild(option);
+        });
+        // Poi carica i custom theme
+        fetch('https://wplacepixels-default-rtdb.europe-west1.firebasedatabase.app/themes/custom.json')
+          .then(res => res.json())
+          .then(customThemes => {
+            if (customThemes) {
+              Object.entries(customThemes).forEach(([userId, userThemes]) => {
+                Object.entries(userThemes).forEach(([themeId, themeData]) => {
+                  const themeValue = `${userId}/${themeId}`;
+                  const themeName = themeData.name || themeValue;
+                  // Crea una copia locale per evitare errori cross-origin
+                  const localThemeData = Object.assign({}, themeData);
+                  if (!('constants' in localThemeData)) localThemeData.constants = {};
+                  if (![...themeSelect.options].some(opt => opt.value === themeValue)) {
+                    const option = document.createElement('option');
+                    option.value = themeValue;
+                    option.textContent = themeName;
+                    option.dataset.themeJson = JSON.stringify(localThemeData);
+                    themeSelect.appendChild(option);
+                  }
+                });
+              });
+            }
+            // Imposta il tema selezionato all'apertura
+            chrome.runtime.sendMessage({action: 'getTheme'}, function(response) {
+              if (response && response.theme) {
+                themeSelect.value = response.theme;
+              }
+            });
+          });
+      });
     const themeSelect = popup.querySelector('#theme-select');
+    // Nessun riferimento a addBtn
+
+    // Carica i temi standard
     fetch('https://wplacepixels-default-rtdb.europe-west1.firebasedatabase.app/themes.json')
       .then(res => res.json())
       .then(themes => {
@@ -118,15 +162,43 @@
         });
       });
 
+    // Funzione per aggiungere custom theme al dropdown
+    // Carica i custom theme salvati in localStorage
+    // RIMOSSO: caricamento customThemes da localStorage
+
     themeSelect.addEventListener('change', function(e) {
       const theme = themeSelect.value;
-      chrome.runtime.sendMessage({action: 'setTheme', theme}, function(response) {
-        if (response && response.success) {
-          setTimeout(() => {
-            window.location.reload();
-          }, 200);
-        }
-      });
+      // Salva l'ID custom in localStorage come 'customtheme'
+      localStorage.setItem('customtheme', theme);
+      if (theme.includes('/')) {
+        // È un tema custom, fai una fetch e applica dal path /themes/custom/userId/themeId.json
+        const [userId, themeId] = theme.split('/');
+        fetch(`https://wplacepixels-default-rtdb.europe-west1.firebasedatabase.app/themes/custom/${userId}/${themeId}.json`)
+          .then(res => res.json())
+          .then(data => {
+            if (!data) {
+              alert('Tema custom non trovato o non valido!');
+              return;
+            }
+            // Applica il tema custom usando il path custom
+            chrome.runtime.sendMessage({action: 'setTheme', theme: `custom/${userId}/${themeId}`}, function(response) {
+              if (response && response.success) {
+                setTimeout(() => {
+                  window.location.reload();
+                }, 200);
+              }
+            });
+          });
+      } else {
+        // Tema standard, applica normalmente
+        chrome.runtime.sendMessage({action: 'setTheme', theme}, function(response) {
+          if (response && response.success) {
+            setTimeout(() => {
+              window.location.reload();
+            }, 200);
+          }
+        });
+      }
     });
   }
 
