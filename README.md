@@ -27,9 +27,9 @@ Once installed, the extension will automatically override the styles of the targ
 
 - [ ] 📱 Make the extension compatible with Firefox for mobile (Android/iOS).
 
-- [ ] 🏪 Integrate a theme store hosted at [https://wplacepixels.web.app/](https://wplacepixels.web.app/) to allow users to browse and apply themes directly from the extension.
+- [X] 🏪 Integrate a theme store hosted at [https://wplacepixels.web.app/](https://wplacepixels.web.app/) to allow users to browse and apply themes directly from the extension.
 
-- [ ] ✏️ Add a theme creator feature to let users design and save their own custom themes from the extension interface.
+- [X] ✏️ Add a theme creator feature to let users design and save their own custom themes from the extension interface.
 
 ## 🤝 Contributions
 Contributions are appreciated! Feel free to open issues or submit pull requests to help improve the extension.
